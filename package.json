@@ -1,0 +1,45 @@
+{
+  "name": "tap-nirvana",
+  "version": "1.0.0",
+  "description": "Proper Diffing Reporter for TAP",
+  "main": "tap-nirvana.js",
+  "bin": {
+    "tap-nirvana": "bin/cli.js"
+  },
+  "dependencies": {
+    "chalk": "^1.0.0",
+    "duplexer": "^0.1.1",
+    "figures": "^1.4.0",
+    "json-diff": "^0.5.2",
+    "json-stringify-pretty-compact": "^1.1.0",
+    "lodash": "^3.6.0",
+    "pretty-ms": "^2.1.0",
+    "repeat-string": "^1.5.2",
+    "tap-out": "^1.4.1",
+    "through2": "^2.0.0",
+    "variable-diff": "^1.1.0"
+  },
+  "devDependencies": {
+    "jsonlint": "^1.6.2",
+    "tape": "^4.8.0",
+    "tapes": "^4.1.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inadarei/tap-better-diff.git"
+  },
+  "keywords": [
+    "tap",
+    "diff",
+    "reporter"
+  ],
+  "author": "Irakli Nadareishvili",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/inadarei/tap-better-diff/issues"
+  },
+  "homepage": "https://github.com/inadarei/tap-better-diff#readme"
+}
