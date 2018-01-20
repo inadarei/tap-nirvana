@@ -1,4 +1,4 @@
-# tap-nirvana
+# Tap Nirvana - Proper Reporter
 
 A TAP reporter optimized for developer comfort above anything else. Works with
 any TAP-compatible test runner, such as
@@ -11,7 +11,15 @@ tape).
 Snippet from a package.json:
 
 ```
-blue-tape test/**/*.js | tap-diff
+ "devDependencies": {
+    "blue-tape": "^1.0.0",
+    "tap": "^11.0.1",
+    "tap-nirvana": "^1.0.0",
+    "nyc": "^11.3.0"
+  },
+  "scripts": {
+    "test": "nyc blue-tape test/**/*.js | tap-nirvana "
+  }
 ```
 
 ### Features:
