@@ -13,7 +13,6 @@ Snippet from a package.json:
 ```
  "devDependencies": {
     "blue-tape": "^1.0.0",
-    "tap": "^11.0.1",
     "tap-nirvana": "^1.0.0",
     "nyc": "^11.3.0"
   },

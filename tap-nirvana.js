@@ -8,7 +8,6 @@ const prettyMs = require('pretty-ms');
 const _ = require('lodash');
 const repeat = require('repeat-string');
 const symbols = require('figures');
-const jsonlint = require("jsonlint");
 const stringify = require("json-stringify-pretty-compact");
 const vdiff = require ("variable-diff");
 
