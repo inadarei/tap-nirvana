@@ -1,6 +1,6 @@
 {
   "name": "tap-nirvana",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Proper Diffing Reporter for TAP",
   "main": "tap-nirvana.js",
   "bin": {

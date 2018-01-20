@@ -143,7 +143,7 @@ module.exports = function (spec) {
   });
 
   parser.on('comment', function (comment) {
-    output.push('~~~\n' + format.yellow(comment.raw) + '\n~~~\n');
+    output.push(format.yellow(comment.raw));
   });
 
   // All done
