@@ -30,3 +30,7 @@ Snippet from a package.json:
 ### Screenshot
 
 ![screenshot image](screenshot-diff.jpg)
+
+### Credit
+
+TAP Nirvana is a fork of [Tap-Spec](https://github.com/scottcorgan/tap-spec)
