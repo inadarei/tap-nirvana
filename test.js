@@ -43,13 +43,12 @@ test('tape-diff test', function (t) {
       "one" : "val"
     };
 
-    t.deepEquals(1,1, "1 deepEquals 1");
-    // t.equal(actual1, expected1);
-    t.deepEquals(actual1, expected1, 'different order should still be equivalent');    
-    t.deepEquals(1,1);
-    t.deepEquals("laura", "franchesca");
-    t.deepEquals(1,2, "1 doesnt equal 2");
-    t.deepEquals(actual, expected);
-    t.deepEquals([1,23], [2,23]);
+    t.deepEqual(1,1, "1 deepEquals 1");
+    t.deepEqual(actual1, expected1, 'different order should still be equivalent');    
+    t.deepEqual(1,1);
+    t.deepEqual("laura", "donna");
+    t.deepEqual(1,2, "1 doesnt equal 2");
+    t.deepEqual(actual, expected);
+    t.deepEqual([1,23], [2,23]);
     t.end();
 });
