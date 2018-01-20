@@ -1,6 +1,6 @@
 {
   "name": "tap-nirvana",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "Proper Diffing Reporter for TAP",
   "main": "tap-nirvana.js",
   "bin": {
@@ -10,7 +10,6 @@
     "chalk": "^1.0.0",
     "duplexer": "^0.1.1",
     "figures": "^1.4.0",
-    "json-diff": "^0.5.2",
     "json-stringify-pretty-compact": "^1.1.0",
     "lodash": "^3.6.0",
     "pretty-ms": "^2.1.0",

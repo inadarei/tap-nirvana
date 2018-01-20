@@ -11,10 +11,6 @@ const symbols = require('figures');
 const stringify = require("json-stringify-pretty-compact");
 const vdiff = require ("variable-diff");
 
-const jsdiff = require('json-diff');
-const { colorize } = require('json-diff/lib/colorize');
-
-
 function lTrimList (lines) {
   
   var leftPadding;
@@ -113,7 +109,7 @@ module.exports = function (spec) {
 
         if (typeof exObj == 'object' && typeof acObj == 'object') {
           errorMessage += format.magenta("expected: ") + expected + "\n";
-          var difference = colorize(jsdiff.diff(exObj, acObj));
+          var difference = vdiff(exObj, acObj).text;
           errorMessage += format.magenta("diff: ") + difference + "\n";
           const moreUsefulStack = removeUselessStackLines(assertion.error.stack);
           errorMessage += format.magenta("source: ") + format.gray(moreUsefulStack) + "\n";   
