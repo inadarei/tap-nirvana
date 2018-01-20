@@ -8,6 +8,8 @@ tape).
 
 ## Usage:
 
+Snippet from a package.json:
+
 ```
 blue-tape test/**/*.js | tap-diff
 ```
