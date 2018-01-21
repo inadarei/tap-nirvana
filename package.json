@@ -19,6 +19,8 @@
     "variable-diff": "^1.1.0"
   },
   "devDependencies": {
+    "json-diff": "^0.5.2",
+    "jsondiffpatch": "^0.2.5",
     "jsonlint": "^1.6.2",
     "tape": "^4.8.0",
     "tapes": "^4.1.0"
