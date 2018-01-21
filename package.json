@@ -1,6 +1,6 @@
 {
   "name": "tap-nirvana",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Proper Diffing Reporter for TAP",
   "main": "tap-nirvana.js",
   "bin": {
@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/inadarei/tap-better-diff.git"
+    "url": "git+https://github.com/inadarei/tap-nirvana.git"
   },
   "keywords": [
     "tap",
@@ -38,7 +38,7 @@
   "author": "Irakli Nadareishvili",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/inadarei/tap-better-diff/issues"
+    "url": "https://github.com/inadarei/tap-nirvana/issues"
   },
-  "homepage": "https://github.com/inadarei/tap-better-diff#readme"
+  "homepage": "https://github.com/inadarei/tap-nirvana"
 }
