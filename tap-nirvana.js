@@ -60,6 +60,13 @@ function removeUselessStackLines(stack) {
 
 module.exports = function (spec) {
 
+  const args = process.argv.slice(2);
+  let failedAsLast = false;
+  
+  if(args[0]==="--failedAsLast"){
+    failedAsLast = true;
+  }
+
   spec = spec || {};
 
   var OUTPUT_PADDING = spec.padding || '  ';
@@ -106,7 +113,9 @@ module.exports = function (spec) {
     }
 
     if (results.fail.length > 0) {
-      output.push(formatErrors(results));
+      if(failedAsLast){
+        output.push(formatFailedAssertions(results));
+      }
       output.push('\n');
     }
 
@@ -137,22 +146,6 @@ module.exports = function (spec) {
     pretty = pretty.join('\n') + '\n';
 
     return pretty;
-  }
-
-
-  // this duplicates errors that we already showd.
-  // @TODO : remove
-  function formatErrors (results) {
-    return ''; 
-
-    var failCount = results.fail.length;
-    var past = (failCount === 1) ? 'was' : 'were';
-    var plural = (failCount === 1) ? 'failure' : 'failures';
-
-    var out = '\n' + pad(format.red.bold('Failed Tests:') + ' There ' + past + ' ' + format.red.bold(failCount) + ' ' + plural + '\n');
-    out += formatFailedAssertions(results);
-
-    return out;
   }
 
   function formatTotals (results) {
@@ -235,12 +228,12 @@ module.exports = function (spec) {
 
       // Wrie failed assertion's test name
       var test = _.find(results.tests, {number: parseInt(testNumber)});
-      out += '\n' + pad('  ' + test.name + '\n\n');
+      out += '\n' + pad(format.cyan(test.name) + '\n');
 
       // Write failed assertion
       _.each(assertions, function (assertion) {
 
-        out += pad('    ' + format.red(symbols.cross) + ' ' + format.red(assertion.name)) + '\n';
+        out += formatFailedAssertion(assertion);
       });
 
       out += '\n';
