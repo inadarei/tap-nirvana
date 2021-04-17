@@ -94,7 +94,7 @@ module.exports = function (spec) {
 
   // Failing assertions
   parser.on('fail', function (assertion) {
-    output.push(formatError(assertion))
+    output.push(formatFailedAssertion(assertion))
 
     stream.failed = true;
   });
@@ -114,11 +114,11 @@ module.exports = function (spec) {
 
     if (results.fail.length > 0) {
       if(errorsLast){
-        output.push(formatFailedAssertions(results));
+        output.push(formatErrors(results));
       }
       output.push('\n');
     }
-    // failingTests.forEach(s => output.push(s));
+
     output.push(formatTotals(results));
     output.push('\n');
 
@@ -148,9 +148,7 @@ module.exports = function (spec) {
     return pretty;
   }
 
-  // this duplicates errors that we already showd.
-  // @TODO : remove
-  function formatError (assertion) {
+  function formatFailedAssertion (assertion) {
     
     var glyph = symbols.cross;
     var title =  glyph + pad(assertion.name);
@@ -218,7 +216,7 @@ module.exports = function (spec) {
            pad(format.dim('(' + prettyMs(new Date().getTime() - startTime) + ')'));
   }
 
-  function formatFailedAssertions (results) {
+  function formatErrors (results) {
 
     var out = '';
 
@@ -234,7 +232,7 @@ module.exports = function (spec) {
 
       // Write failed assertion
       _.each(assertions, function (assertion) {
-        out += formatError(assertion);
+        out += formatFailedAssertion(assertion);
       });
 
       out += '\n';
