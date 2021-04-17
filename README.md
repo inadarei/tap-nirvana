@@ -19,13 +19,13 @@ Snippet from a package.json:
   "scripts": {
     "test": "nyc blue-tape test/**/*.js | tap-nirvana "
   }
+
+  Options:
+
+    --failedLast
+      Print failed assertions at the end of the stream
 ```
 
-### Options
-
-```
-  --errorsLast: print errors at the end of the stream
-```
 ### Features:
 
 1. Color-coded diffs of complex objects for easy expected/actual analysis

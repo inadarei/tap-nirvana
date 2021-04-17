@@ -61,10 +61,10 @@ function removeUselessStackLines(stack) {
 module.exports = function (spec) {
 
   const args = process.argv.slice(2);
-  let errorsLast = false;
+  let failedLast = false;
   
-  if(args[0]==="--errorsLast"){
-    errorsLast = true;
+  if(args[0]==="--failedLast"){
+    failedLast = true;
   }
 
   spec = spec || {};
@@ -113,7 +113,7 @@ module.exports = function (spec) {
     }
 
     if (results.fail.length > 0) {
-      if(errorsLast){
+      if(failedLast){
         output.push(formatErrors(results));
       }
       output.push('\n');
