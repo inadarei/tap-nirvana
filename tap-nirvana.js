@@ -60,6 +60,13 @@ function removeUselessStackLines(stack) {
 
 module.exports = function (spec) {
 
+  const args = process.argv.slice(2);
+  let errorsLast = false;
+  
+  if(args[0]==="--errorsLast"){
+    errorsLast = true;
+  }
+
   spec = spec || {};
 
   var OUTPUT_PADDING = spec.padding || '  ';
@@ -69,6 +76,7 @@ module.exports = function (spec) {
   var stream = duplexer(parser, output);
   var startTime = new Date().getTime();
 
+  const failingTests = [];
   output.push('\n');
 
   parser.on('test', function (test) {
@@ -86,15 +94,75 @@ module.exports = function (spec) {
 
   // Failing assertions
   parser.on('fail', function (assertion) {
+    output.push(formatError(assertion))
 
+    stream.failed = true;
+  });
+
+  parser.on('comment', function (comment) {
+    output.push('\n' + pad('  ' + format.yellow(comment.raw)));
+  });
+
+  // All done
+  parser.on('output', function (results) {
+    output.push('\n\n');
+
+    // Most likely a failure upstream
+    if (results.plans.length < 1) {
+      process.exit(1);
+    }
+
+    if (results.fail.length > 0) {
+      if(errorsLast){
+        output.push(formatFailedAssertions(results));
+      }
+      output.push('\n');
+    }
+    // failingTests.forEach(s => output.push(s));
+    output.push(formatTotals(results));
+    output.push('\n');
+
+    // Exit if no tests run. This is a result of 1 of 2 things:
+    //  1. No tests were written
+    //  2. There was some error before the TAP got to the parser
+    if (results.tests.length === 0) {
+      process.exit(1);
+    }
+  });
+
+  // Utils
+
+  function prettifyRawError (rawError, indentIterations=1) {
+
+    let pretty = rawError.split('\n');
+    pretty = pretty.map((line) => {
+      let padded = line;
+      for (let i=0; i<= indentIterations; i++) {
+        padded = pad(padded);
+      }
+      return padded;
+    });
+    
+    pretty = pretty.join('\n') + '\n';
+
+    return pretty;
+  }
+
+  // this duplicates errors that we already showd.
+  // @TODO : remove
+  function formatError (assertion) {
+    
     var glyph = symbols.cross;
     var title =  glyph + pad(assertion.name);
     var divider = _.fill(
       new Array((title).length + 1),
       '-'
     ).join('');
-    output.push(pad('  ' + format.red(title) + '\n'));
-    output.push(pad('  ' + format.red(divider) + '\n'));
+
+    let out = '';
+    out += pad('  ' + format.red(title) + '\n');
+    out += pad('  ' + format.red(divider) + '\n');
+    
 
     let skipObjectDiff = true;
     let errorMessage  = format.magenta("operator:") + " deepEqual\n";
@@ -133,73 +201,10 @@ module.exports = function (spec) {
     }
 
     errorMessage = prettifyRawError(errorMessage, 3);
-    output.push(errorMessage);
-
-    stream.failed = true;
-  });
-
-  parser.on('comment', function (comment) {
-    output.push('\n' + pad('  ' + format.yellow(comment.raw)));
-  });
-
-  // All done
-  parser.on('output', function (results) {
-
-    output.push('\n\n');
-
-    // Most likely a failure upstream
-    if (results.plans.length < 1) {
-      process.exit(1);
-    }
-
-    if (results.fail.length > 0) {
-      output.push(formatErrors(results));
-      output.push('\n');
-    }
-
-    output.push(formatTotals(results));
-    output.push('\n');
-
-    // Exit if no tests run. This is a result of 1 of 2 things:
-    //  1. No tests were written
-    //  2. There was some error before the TAP got to the parser
-    if (results.tests.length === 0) {
-      process.exit(1);
-    }
-  });
-
-  // Utils
-
-  function prettifyRawError (rawError, indentIterations=1) {
-
-    let pretty = rawError.split('\n');
-    pretty = pretty.map((line) => {
-      let padded = line;
-      for (let i=0; i<= indentIterations; i++) {
-        padded = pad(padded);
-      }
-      return padded;
-    });
-    
-    pretty = pretty.join('\n') + '\n';
-
-    return pretty;
-  }
-
-  // this duplicates errors that we already showd.
-  // @TODO : remove
-  function formatErrors (results) {
-    return ''; 
-
-    var failCount = results.fail.length;
-    var past = (failCount === 1) ? 'was' : 'were';
-    var plural = (failCount === 1) ? 'failure' : 'failures';
-
-    var out = '\n' + pad(format.red.bold('Failed Tests:') + ' There ' + past + ' ' + format.red.bold(failCount) + ' ' + plural + '\n');
-    out += formatFailedAssertions(results);
+    out += (errorMessage);
 
     return out;
-  }
+  };
 
   function formatTotals (results) {
 
@@ -225,12 +230,11 @@ module.exports = function (spec) {
 
       // Wrie failed assertion's test name
       var test = _.find(results.tests, {number: parseInt(testNumber)});
-      out += '\n' + pad('  ' + test.name + '\n\n');
+      out += '\n' + pad(format.cyan(test.name) + '\n');
 
       // Write failed assertion
       _.each(assertions, function (assertion) {
-
-        out += pad('    ' + format.red(symbols.cross) + ' ' + format.red(assertion.name)) + '\n';
+        out += formatError(assertion);
       });
 
       out += '\n';

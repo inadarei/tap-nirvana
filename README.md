@@ -21,6 +21,11 @@ Snippet from a package.json:
   }
 ```
 
+### Options
+
+```
+  --errorsLast: print errors at the end of the stream
+```
 ### Features:
 
 1. Color-coded diffs of complex objects for easy expected/actual analysis
