@@ -60,6 +60,13 @@ function removeUselessStackLines(stack) {
 
 module.exports = function (spec) {
 
+  const args = process.argv.slice(2);
+  let failedAsLast = false;
+  
+  if(args[0]==="--failedAsLast"){
+    failedAsLast = true;
+  }
+
   spec = spec || {};
 
   var OUTPUT_PADDING = spec.padding || '  ';
@@ -86,55 +93,8 @@ module.exports = function (spec) {
 
   // Failing assertions
   parser.on('fail', function (assertion) {
-
-    var glyph = symbols.cross;
-    var title =  glyph + pad(assertion.name);
-    var divider = _.fill(
-      new Array((title).length + 1),
-      '-'
-    ).join('');
-    output.push(pad('  ' + format.red(title) + '\n'));
-    output.push(pad('  ' + format.red(divider) + '\n'));
-
-    let skipObjectDiff = true;
-    let errorMessage  = format.magenta("operator:") + " deepEqual\n";
-
-    if (assertion.error.operator === 'deepEqual') {
-      skipObjectDiff = false;
-      try {
-        const exObj = reviveJSON(assertion.error.expected);
-        const acObj = reviveJSON(assertion.error.actual);
-        const expected = stringify(exObj);
-        const actual = stringify(acObj);
-
-        if (typeof exObj == 'object' && typeof acObj == 'object') {
-          errorMessage += format.magenta("expected: ") + expected + "\n";
-          var difference = vdiff(exObj, acObj).text;
-          errorMessage += format.magenta("diff: ") + difference + "\n";
-          const moreUsefulStack = removeUselessStackLines(assertion.error.stack);
-          errorMessage += format.magenta("source: ") + format.gray(moreUsefulStack) + "\n";   
-        } else {
-          skipObjectDiff = true;
-        }
-      } catch (err) {
-        console.log("error fired " + err);
-        skipObjectDiff = true;
-      }
-    }
-
-    if (skipObjectDiff) {
-      const expected = assertion.error.expected;
-      const actual = assertion.error.actual;
-      //errorMessage += format.magenta("expected: ") + expected + "\n";
-      const delta = vdiff(expected, actual).text;
-      errorMessage += format.magenta("diff: ") + delta + "\n";
-      const moreUsefulStack = removeUselessStackLines(assertion.error.stack);
-      errorMessage += format.magenta("source: ") + format.gray(moreUsefulStack) + "\n"; 
-    }
-
-    errorMessage = prettifyRawError(errorMessage, 3);
-    output.push(errorMessage);
-
+    output.push(formatFailedAssertion(assertion))
+   
     stream.failed = true;
   });
 
@@ -153,7 +113,9 @@ module.exports = function (spec) {
     }
 
     if (results.fail.length > 0) {
-      output.push(formatErrors(results));
+      if(failedAsLast){
+        output.push(formatFailedAssertions(results));
+      }
       output.push('\n');
     }
 
@@ -186,21 +148,6 @@ module.exports = function (spec) {
     return pretty;
   }
 
-  // this duplicates errors that we already showd.
-  // @TODO : remove
-  function formatErrors (results) {
-    return ''; 
-
-    var failCount = results.fail.length;
-    var past = (failCount === 1) ? 'was' : 'were';
-    var plural = (failCount === 1) ? 'failure' : 'failures';
-
-    var out = '\n' + pad(format.red.bold('Failed Tests:') + ' There ' + past + ' ' + format.red.bold(failCount) + ' ' + plural + '\n');
-    out += formatFailedAssertions(results);
-
-    return out;
-  }
-
   function formatTotals (results) {
 
     if (results.tests.length === 0) {
@@ -212,6 +159,62 @@ module.exports = function (spec) {
            pad('of ' + results.asserts.length + ' tests') +
            pad(format.dim('(' + prettyMs(new Date().getTime() - startTime) + ')'));
   }
+
+  function formatFailedAssertion (assertion) {
+    
+    var glyph = symbols.cross;
+    var title =  glyph + pad(assertion.name);
+    var divider = _.fill(
+      new Array((title).length + 1),
+      '-'
+    ).join('');
+
+    let out = '';
+    out += pad('  ' + format.red(title) + '\n');
+    out += pad('  ' + format.red(divider) + '\n');
+    
+
+    let skipObjectDiff = true;
+    let errorMessage  = format.magenta("operator:") + " deepEqual\n";
+
+    if (assertion.error.operator === 'deepEqual') {
+      skipObjectDiff = false;
+      try {
+        const exObj = reviveJSON(assertion.error.expected);
+        const acObj = reviveJSON(assertion.error.actual);
+        const expected = stringify(exObj);
+        const actual = stringify(acObj);
+
+        if (typeof exObj == 'object' && typeof acObj == 'object') {
+          errorMessage += format.magenta("expected: ") + expected + "\n";
+          var difference = vdiff(exObj, acObj).text;
+          errorMessage += format.magenta("diff: ") + difference + "\n";
+          const moreUsefulStack = removeUselessStackLines(assertion.error.stack);
+          errorMessage += format.magenta("source: ") + format.gray(moreUsefulStack) + "\n";
+        } else {
+          skipObjectDiff = true;
+        }
+      } catch (err) {
+        console.log("error fired " + err);
+        skipObjectDiff = true;
+      }
+    }
+
+    if (skipObjectDiff) {
+      const expected = assertion.error.expected;
+      const actual = assertion.error.actual;
+      //errorMessage += format.magenta("expected: ") + expected + "\n";
+      const delta = vdiff(expected, actual).text;
+      errorMessage += format.magenta("diff: ") + delta + "\n";
+      const moreUsefulStack = removeUselessStackLines(assertion.error.stack);
+      errorMessage += format.magenta("source: ") + format.gray(moreUsefulStack) + "\n";
+    }
+
+    errorMessage = prettifyRawError(errorMessage, 3);
+    out += (errorMessage);
+
+    return out;
+  };
 
   function formatFailedAssertions (results) {
 
@@ -225,12 +228,12 @@ module.exports = function (spec) {
 
       // Wrie failed assertion's test name
       var test = _.find(results.tests, {number: parseInt(testNumber)});
-      out += '\n' + pad('  ' + test.name + '\n\n');
+      out += '\n' + pad(format.cyan(test.name) + '\n');
 
       // Write failed assertion
       _.each(assertions, function (assertion) {
 
-        out += pad('    ' + format.red(symbols.cross) + ' ' + format.red(assertion.name)) + '\n';
+        out += formatFailedAssertion(assertion);
       });
 
       out += '\n';

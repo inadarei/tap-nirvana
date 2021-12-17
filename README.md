@@ -10,7 +10,7 @@ tape).
 
 Snippet from a package.json:
 
-```
+<pre>
  "devDependencies": {
     "blue-tape": "^1.0.0",
     "tap-nirvana": "^1.0.5",
@@ -19,7 +19,12 @@ Snippet from a package.json:
   "scripts": {
     "test": "nyc blue-tape test/**/*.js | tap-nirvana "
   }
-```
+
+  Options:
+
+    <b>--failedAsLast</b>
+      Print failed assertions at the end of the stream
+</pre>
 
 ### Features:
 
