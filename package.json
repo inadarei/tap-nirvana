@@ -7,6 +7,7 @@
     "tap-nirvana": "bin/cli.js"
   },
   "dependencies": {
+    "@small-tech/tap-out": "^3.2.0",
     "chalk": "^2.4.1",
     "duplexer": "^0.1.1",
     "figures": "^2.0.0",
@@ -14,7 +15,6 @@
     "lodash": "^4.17.10",
     "pretty-ms": "^3.2.0",
     "repeat-string": "^1.5.2",
-    "tap-out": "^3.0.0",
     "through2": "^2.0.0",
     "variable-diff": "^1.1.0"
   },

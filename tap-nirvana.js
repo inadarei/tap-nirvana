@@ -1,30 +1,28 @@
-const fs = require('fs');
+const fs = require("fs");
 
-const tapOut = require('tap-out');
-const through = require('through2');
-const duplexer = require('duplexer');
-const format = require('chalk');
-const prettyMs = require('pretty-ms');
-const _ = require('lodash');
-const repeat = require('repeat-string');
-const symbols = require('figures');
+const tapOut = require("@small-tech/tap-out");
+const through = require("through2");
+const duplexer = require("duplexer");
+const format = require("chalk");
+const prettyMs = require("pretty-ms");
+const _ = require("lodash");
+const repeat = require("repeat-string");
+const symbols = require("figures");
 const stringify = require("json-stringify-pretty-compact");
-const vdiff = require ("variable-diff");
+const vdiff = require("variable-diff");
 
-function lTrimList (lines) {
-  
+function lTrimList(lines) {
   var leftPadding;
-  
+
   // Get minimum padding count
   _.each(lines, function (line) {
-    
     var spaceLen = line.match(/^\s+/)[0].length;
-    
+
     if (leftPadding === undefined || spaceLen < leftPadding) {
       leftPadding = spaceLen;
     }
   });
-  
+
   // Strip padding at beginning of line
   return _.map(lines, function (line) {
     return line.slice(leftPadding);
@@ -33,79 +31,76 @@ function lTrimList (lines) {
 
 /**
  * If you try to deepEqual two JSON objects in tape, by the time these reach us
- * here, they are stringified Javascript (not JSON!) objects. So we need to 
+ * here, they are stringified Javascript (not JSON!) objects. So we need to
  * revive them and the only way is using eval. To make the usage of eval safe
  * we wrap it in JSON.stringify and then restore with JSON.parse
- * 
- * @param {*String} jsString 
+ *
+ * @param {*String} jsString
  */
 function reviveJSON(jsString) {
   let omg;
-  eval ("omg = JSON.parse(JSON.stringify(" + jsString + "))");
+  eval("omg = JSON.parse(JSON.stringify(" + jsString + "))");
   return omg;
 }
 
 /**
  * Remove lines from error stack that belong to test runner. Nobody cares
- * @param {*String} stack 
+ * @param {*String} stack
  */
 function removeUselessStackLines(stack) {
-  let pretty = stack.split('\n');
-  pretty = pretty.filter((line) => {
-    return !line.includes('node_modules') && !line.includes('Error');
-  });  
-  pretty = pretty.join('\n');
+  let pretty = stack.split("\n");
+  pretty = pretty.filter(line => {
+    return !line.includes("node_modules") && !line.includes("Error");
+  });
+  pretty = pretty.join("\n");
   return pretty;
 }
 
 module.exports = function (spec) {
-
   const args = process.argv.slice(2);
   let failedAsLast = false;
-  
-  if(args[0]==="--failedAsLast"){
+
+  if (args[0] === "--failedAsLast") {
     failedAsLast = true;
   }
 
   spec = spec || {};
 
-  var OUTPUT_PADDING = spec.padding || '  ';
+  var OUTPUT_PADDING = spec.padding || "  ";
 
   var output = through();
   var parser = tapOut();
   var stream = duplexer(parser, output);
   var startTime = new Date().getTime();
 
-  output.push('\n');
+  output.push("\n");
 
-  parser.on('test', function (test) {
-    output.push('\n' + pad(format.cyan(test.name)) + '\n');
+  parser.on("test", function (test) {
+    output.push("\n" + pad(format.cyan(test.name)) + "\n");
   });
 
   // Passing assertions
-  parser.on('pass', function (assertion) {
-
+  parser.on("pass", function (assertion) {
     var glyph = format.green(symbols.tick);
     var name = format.dim(assertion.name);
 
-    output.push(pad('  ' + glyph + pad(name) + '\n'));
+    output.push(pad("  " + glyph + pad(name) + "\n"));
   });
 
   // Failing assertions
-  parser.on('fail', function (assertion) {
-    output.push(formatFailedAssertion(assertion))
-   
+  parser.on("fail", function (assertion) {
+    output.push(formatFailedAssertion(assertion));
+
     stream.failed = true;
   });
 
-  parser.on('comment', function (comment) {
-    output.push('\n' + pad('  ' + format.yellow(comment.raw)));
+  parser.on("comment", function (comment) {
+    output.push("\n" + pad("  " + format.yellow(comment.raw)));
   });
 
   // All done
-  parser.on('output', function (results) {
-
-    output.push('\n\n');
+  parser.on("output", function (results) {
+    output.push("\n\n");
 
     // Most likely a failure upstream
     if (results.plans.length < 1) {
@@ -113,14 +108,14 @@ module.exports = function (spec) {
     }
 
     if (results.fail.length > 0) {
-      if(failedAsLast){
+      if (failedAsLast) {
         output.push(formatFailedAssertions(results));
       }
-      output.push('\n');
+      output.push("\n");
     }
 
     output.push(formatTotals(results));
-    output.push('\n');
+    output.push("\n");
 
     // Exit if no tests run. This is a result of 1 of 2 things:
     //  1. No tests were written
@@ -132,52 +127,47 @@ module.exports = function (spec) {
 
   // Utils
 
-  function prettifyRawError (rawError, indentIterations=1) {
-
-    let pretty = rawError.split('\n');
-    pretty = pretty.map((line) => {
+  function prettifyRawError(rawError, indentIterations = 1) {
+    let pretty = rawError.split("\n");
+    pretty = pretty.map(line => {
       let padded = line;
-      for (let i=0; i<= indentIterations; i++) {
+      for (let i = 0; i <= indentIterations; i++) {
         padded = pad(padded);
       }
       return padded;
     });
-    
-    pretty = pretty.join('\n') + '\n';
+
+    pretty = pretty.join("\n") + "\n";
 
     return pretty;
   }
 
-  function formatTotals (results) {
-
+  function formatTotals(results) {
     if (results.tests.length === 0) {
-      return pad(format.red(symbols.cross + ' No tests found'));
+      return pad(format.red(symbols.cross + " No tests found"));
     }
 
-    return pad(format.green('passed: ' + results.pass.length + ',')) + 
-           pad(format.red('failed: ' + results.fail.length)) +
-           pad('of ' + results.asserts.length + ' tests') +
-           pad(format.dim('(' + prettyMs(new Date().getTime() - startTime) + ')'));
+    return (
+      pad(format.green("passed: " + results.pass.length + ",")) +
+      pad(format.red("failed: " + results.fail.length)) +
+      pad("of " + results.asserts.length + " tests") +
+      pad(format.dim("(" + prettyMs(new Date().getTime() - startTime) + ")"))
+    );
   }
 
-  function formatFailedAssertion (assertion) {
-    
+  function formatFailedAssertion(assertion) {
     var glyph = symbols.cross;
-    var title =  glyph + pad(assertion.name);
-    var divider = _.fill(
-      new Array((title).length + 1),
-      '-'
-    ).join('');
+    var title = glyph + pad(assertion.name);
+    var divider = _.fill(new Array(title.length + 1), "-").join("");
 
-    let out = '';
-    out += pad('  ' + format.red(title) + '\n');
-    out += pad('  ' + format.red(divider) + '\n');
-    
+    let out = "";
+    out += pad("  " + format.red(title) + "\n");
+    out += pad("  " + format.red(divider) + "\n");
 
     let skipObjectDiff = true;
-    let errorMessage  = format.magenta("operator:") + " deepEqual\n";
+    let errorMessage = format.magenta("operator:") + " deepEqual\n";
 
-    if (assertion.error.operator === 'deepEqual') {
+    if (assertion.error.operator === "deepEqual") {
       skipObjectDiff = false;
       try {
         const exObj = reviveJSON(assertion.error.expected);
@@ -185,12 +175,15 @@ module.exports = function (spec) {
         const expected = stringify(exObj);
         const actual = stringify(acObj);
 
-        if (typeof exObj == 'object' && typeof acObj == 'object') {
+        if (typeof exObj == "object" && typeof acObj == "object") {
           errorMessage += format.magenta("expected: ") + expected + "\n";
           var difference = vdiff(exObj, acObj).text;
           errorMessage += format.magenta("diff: ") + difference + "\n";
-          const moreUsefulStack = removeUselessStackLines(assertion.error.stack);
-          errorMessage += format.magenta("source: ") + format.gray(moreUsefulStack) + "\n";
+          const moreUsefulStack = removeUselessStackLines(
+            assertion.error.stack
+          );
+          errorMessage +=
+            format.magenta("source: ") + format.gray(moreUsefulStack) + "\n";
         } else {
           skipObjectDiff = true;
         }
@@ -207,43 +200,40 @@ module.exports = function (spec) {
       const delta = vdiff(expected, actual).text;
       errorMessage += format.magenta("diff: ") + delta + "\n";
       const moreUsefulStack = removeUselessStackLines(assertion.error.stack);
-      errorMessage += format.magenta("source: ") + format.gray(moreUsefulStack) + "\n";
+      errorMessage +=
+        format.magenta("source: ") + format.gray(moreUsefulStack) + "\n";
     }
 
     errorMessage = prettifyRawError(errorMessage, 3);
-    out += (errorMessage);
+    out += errorMessage;
 
     return out;
-  };
+  }
 
-  function formatFailedAssertions (results) {
-
-    var out = '';
+  function formatFailedAssertions(results) {
+    var out = "";
 
     var groupedAssertions = _.groupBy(results.fail, function (assertion) {
       return assertion.test;
     });
 
     _.each(groupedAssertions, function (assertions, testNumber) {
-
       // Wrie failed assertion's test name
-      var test = _.find(results.tests, {number: parseInt(testNumber)});
-      out += '\n' + pad(format.cyan(test.name) + '\n');
+      var test = _.find(results.tests, { number: parseInt(testNumber) });
+      out += "\n" + pad(format.cyan(test.name) + "\n");
 
       // Write failed assertion
       _.each(assertions, function (assertion) {
-
         out += formatFailedAssertion(assertion);
       });
 
-      out += '\n';
+      out += "\n";
     });
 
     return out;
   }
 
-  function pad (str) {
-
+  function pad(str) {
     return OUTPUT_PADDING + str;
   }
 
